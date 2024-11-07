@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Prediction App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: #004080;
+            color: white;
+        }
+        .logo img {
+            width: 150px;
+            height: auto;
+        }
+        .student-info {
+            text-align: right;
+        }
+        .student-info p {
+            margin: 0;
+            font-size: 18px;
+        }
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #f8f9fa;
+            margin-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 0.75rem;
+        }
+        .map {
+            height: 500px;
+            margin-top: 20px;
+            border: 1px solid #dee2e6;
+        }
+        .plot-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .plot-item {
+            flex: 1 1 45%; /* Two plots per row with some spacing */
+            margin: 10px; /* Space between plots */
+        }
+        h1, h3 {
+            color: #004080;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="University Logo">
+        </div>
+        <div class="student-info">
+            <p>Name: Nguyen Vu Huy</p>
+            <p>Student ID: CE180834</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="text-center">Traffic Prediction Application</h1>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-section mt-4">
+                    <form method="POST">
+                        <div class="form-group">
+                            <label for="model">Select Model</label>
+                            <select name="model" class="form-control" required>
+                                {% for model in models %}
+                                <option value="{{ model }}">{{ model }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="Date">Date</label>
+                            <input type="number" name="Date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="Time">Time (HH:MM:SS AM/PM)</label>
+                            <input type="text" name="Time" class="form-control" placeholder="e.g. 02:30:00 PM" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="CarCount">Car Count</label>
+                                <input type="number" name="CarCount" class="form-control" required>
+                            </div>
+                            <div class="form-group col">
+                                <label for="BikeCount">Bike Count</label>
+                                <input type="number" name="BikeCount" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="BusCount">Bus Count</label>
+                                <input type="number" name="BusCount" class="form-control" required>
+                            </div>
+                            <div class="form-group col">
+                                <label for="TruckCount">Truck Count</label>
+                                <input type="number" name="TruckCount" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="Total">Total Vehicle Count</label>
+                            <input type="number" name="Total" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="Day of the week">Day of the Week</label>
+                            <select name="Day of the week" class="form-control" required>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                                <option value="Sunday">Sunday</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Predict</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="map">
+                    <h4>Traffic Map</h4>
+                    <iframe src="{{ traffic_map }}" width="100%" height="100%"></iframe>
+                </div>
+            </div>
+        </div>
+
+        {% if prediction %}
+        <h3 class="text-center mt-4">Prediction: {{ prediction }}</h3>
+        {% endif %}
+
+        <div class="plot-container mt-4">
+            <div class="plot-item">
+                <h5>Model Accuracies</h5>
+                <img src="{{ url_for('static', filename='images/model_accuracies_plot.png') }}" class="img-fluid" alt="Model Accuracies">
+            </div>
+            
+            {% for plot_name, plot_url in plots.items() %}
+            {% if plot_name != 'Model Accuracies' %}
+            <div class="plot-item">
+                <h5>{{ plot_name }}</h5>
+                <img src="{{ plot_url }}" class="img-fluid" alt="{{ plot_name }}">
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Komunicate Chatbot integration -->
+    <script type="text/javascript">
+        (function(d, m){
+            var kommunicateSettings = 
+                {"appId":"2209561b0d35d504523f6842378e07c40","popupWidget":true,"automaticChatOpenOnNavigation":true};
+            var s = document.createElement("script"); s.type = "text/javascript"; s.async = true;
+            s.src = "https://widget.kommunicate.io/v2/kommunicate.app";
+            var h = document.getElementsByTagName("head")[0]; h.appendChild(s);
+            window.kommunicate = m; m._globals = kommunicateSettings;
+        })(document, window.kommunicate || {});
+    </script>
+    <footer>
+        <p>&copy; 2024 Traffic Prediction Application</p>
+    </footer>
+</body>
+</html>
